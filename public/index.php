@@ -16,9 +16,9 @@ use App\middleware\AuthMiddleware;
 
 $app = AppFactory::create();
 
-// Auto-detect base path so Slim works in a subdirectory (e.g. /Final Project)
-$scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
-$basePath = rtrim(str_replace('/public/index.php', '', $scriptName), '/');
+// Auto-detect base path — works via junction (/finalproject/) or direct (/Final Project/public/)
+$scriptDir = dirname($_SERVER['SCRIPT_NAME'] ?? '');
+$basePath  = rtrim(str_replace('/public', '', $scriptDir), '/');
 $app->setBasePath($basePath);
 
 // Make base path available globally for redirects and view links
