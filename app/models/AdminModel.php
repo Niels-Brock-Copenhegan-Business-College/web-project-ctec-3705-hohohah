@@ -17,15 +17,25 @@ class AdminModel
 
     public function findByUsername(string $username): array|false
     {
-        $stmt = $this->db->prepare('SELECT * FROM admin_users WHERE username = :username');
-        $stmt->execute([':username' => $username]);
+        $stmt = $this->db->prepare('
+            SELECT * FROM admin_users
+            WHERE username = :username
+        ');
+
+        $stmt->execute([
+            ':username' => $username
+        ]);
+
         return $stmt->fetch();
     }
 
     public function getAllStaff(): array
     {
-        $stmt = $this->db->prepare('SELECT * FROM staff ORDER BY name');
+        // Retrieve all staff members ordered by name
+        $stmt = $this->db->prepare('SELECT * FROM staff ORDER BY name ASC');
+
         $stmt->execute();
+
         return $stmt->fetchAll();
     }
 }
