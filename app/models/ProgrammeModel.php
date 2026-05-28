@@ -29,15 +29,18 @@ class ProgrammeModel
             $sql .= ' AND (p.title LIKE :search OR p.description LIKE :search)';
             $params[':search'] = '%' . $search . '%';
         }
+
         if ($level !== '') {
             $sql .= ' AND p.level = :level';
             $params[':level'] = $level;
         }
 
-        $sql .= ' ORDER BY p.level, p.title';
+        // Sorted alphabetically by programme level and title
+        $sql .= ' ORDER BY p.level ASC, p.title ASC';
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
+
         return $stmt->fetchAll();
     }
 
@@ -49,7 +52,9 @@ class ProgrammeModel
             LEFT JOIN staff s ON s.id = p.programme_leader_id
             WHERE p.id = :id AND p.published = 1
         ');
+
         $stmt->execute([':id' => $id]);
+
         return $stmt->fetch();
     }
 
@@ -61,7 +66,9 @@ class ProgrammeModel
             LEFT JOIN staff s ON s.id = p.programme_leader_id
             WHERE p.id = :id
         ');
+
         $stmt->execute([':id' => $id]);
+
         return $stmt->fetch();
     }
 
@@ -73,7 +80,9 @@ class ProgrammeModel
             LEFT JOIN staff s ON s.id = p.programme_leader_id
             ORDER BY p.level, p.title
         ');
+
         $stmt->execute();
+
         return $stmt->fetchAll();
     }
 
@@ -83,6 +92,7 @@ class ProgrammeModel
             INSERT INTO programmes (title, level, description, duration_years, published, programme_leader_id)
             VALUES (:title, :level, :description, :duration_years, :published, :programme_leader_id)
         ');
+
         $stmt->execute([
             ':title'               => $data['title'],
             ':level'               => $data['level'],
@@ -91,6 +101,7 @@ class ProgrammeModel
             ':published'           => isset($data['published']) ? 1 : 0,
             ':programme_leader_id' => $data['programme_leader_id'] ?: null,
         ]);
+
         return (int)$this->db->lastInsertId();
     }
 
@@ -103,6 +114,7 @@ class ProgrammeModel
                 programme_leader_id = :programme_leader_id
             WHERE id = :id
         ');
+
         $stmt->execute([
             ':id'                  => $id,
             ':title'               => $data['title'],
@@ -117,12 +129,14 @@ class ProgrammeModel
     public function delete(int $id): void
     {
         $stmt = $this->db->prepare('DELETE FROM programmes WHERE id = :id');
+
         $stmt->execute([':id' => $id]);
     }
 
     public function togglePublished(int $id): void
     {
         $stmt = $this->db->prepare('UPDATE programmes SET published = 1 - published WHERE id = :id');
+
         $stmt->execute([':id' => $id]);
     }
 }
