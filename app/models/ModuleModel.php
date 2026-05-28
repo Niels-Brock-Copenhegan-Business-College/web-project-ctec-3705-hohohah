@@ -23,16 +23,22 @@ class ModuleModel
             JOIN programme_modules pm ON pm.module_id = m.id
             LEFT JOIN staff s ON s.id = m.module_leader_id
             WHERE pm.programme_id = :programme_id
-            ORDER BY pm.year_of_study, m.title
+            ORDER BY pm.year_of_study ASC, m.title ASC
         ');
+
         $stmt->execute([':programme_id' => $programmeId]);
+
         $rows = $stmt->fetchAll();
 
         $grouped = [];
+
+        // Group modules by year of study
         foreach ($rows as $row) {
             $grouped[$row['year_of_study']][] = $row;
         }
+
         ksort($grouped);
+
         return $grouped;
     }
 
@@ -44,7 +50,9 @@ class ModuleModel
             LEFT JOIN staff s ON s.id = m.module_leader_id
             ORDER BY m.title
         ');
+
         $stmt->execute();
+
         return $stmt->fetchAll();
     }
 
@@ -56,7 +64,9 @@ class ModuleModel
             LEFT JOIN staff s ON s.id = m.module_leader_id
             WHERE m.id = :id
         ');
+
         $stmt->execute([':id' => $id]);
+
         return $stmt->fetch();
     }
 
@@ -69,7 +79,9 @@ class ModuleModel
             WHERE pm.module_id = :module_id AND p.published = 1
             ORDER BY p.title
         ');
+
         $stmt->execute([':module_id' => $moduleId]);
+
         return $stmt->fetchAll();
     }
 
@@ -79,12 +91,14 @@ class ModuleModel
             INSERT INTO modules (title, description, credits, module_leader_id)
             VALUES (:title, :description, :credits, :module_leader_id)
         ');
+
         $stmt->execute([
             ':title'            => $data['title'],
             ':description'      => $data['description'],
             ':credits'          => (int)$data['credits'],
             ':module_leader_id' => $data['module_leader_id'] ?: null,
         ]);
+
         return (int)$this->db->lastInsertId();
     }
 
@@ -95,6 +109,7 @@ class ModuleModel
             SET title = :title, description = :description, credits = :credits, module_leader_id = :module_leader_id
             WHERE id = :id
         ');
+
         $stmt->execute([
             ':id'               => $id,
             ':title'            => $data['title'],
@@ -107,6 +122,7 @@ class ModuleModel
     public function delete(int $id): void
     {
         $stmt = $this->db->prepare('DELETE FROM modules WHERE id = :id');
+
         $stmt->execute([':id' => $id]);
     }
 
@@ -116,14 +132,24 @@ class ModuleModel
             INSERT IGNORE INTO programme_modules (programme_id, module_id, year_of_study)
             VALUES (:programme_id, :module_id, :year)
         ');
-        $stmt->execute([':programme_id' => $programmeId, ':module_id' => $moduleId, ':year' => $year]);
+
+        $stmt->execute([
+            ':programme_id' => $programmeId,
+            ':module_id'    => $moduleId,
+            ':year'         => $year
+        ]);
     }
 
     public function removeFromProgramme(int $programmeId, int $moduleId): void
     {
         $stmt = $this->db->prepare('
-            DELETE FROM programme_modules WHERE programme_id = :programme_id AND module_id = :module_id
+            DELETE FROM programme_modules
+            WHERE programme_id = :programme_id AND module_id = :module_id
         ');
-        $stmt->execute([':programme_id' => $programmeId, ':module_id' => $moduleId]);
+
+        $stmt->execute([
+            ':programme_id' => $programmeId,
+            ':module_id'    => $moduleId
+        ]);
     }
 }
