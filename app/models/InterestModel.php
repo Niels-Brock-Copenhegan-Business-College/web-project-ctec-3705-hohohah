@@ -21,6 +21,7 @@ class InterestModel
             INSERT INTO interest_registrations (first_name, last_name, email, phone, programme_id, message)
             VALUES (:first_name, :last_name, :email, :phone, :programme_id, :message)
         ');
+
         try {
             $stmt->execute([
                 ':first_name'   => $data['first_name'],
@@ -30,12 +31,15 @@ class InterestModel
                 ':programme_id' => (int)$data['programme_id'],
                 ':message'      => $data['message'] ?? null,
             ]);
+
             return true;
         } catch (\PDOException $e) {
+
             // Duplicate entry (email + programme_id already registered)
             if ($e->getCode() === '23000') {
                 return false;
             }
+
             throw $e;
         }
     }
@@ -46,7 +50,12 @@ class InterestModel
             DELETE FROM interest_registrations
             WHERE programme_id = :programme_id AND email = :email
         ');
-        $stmt->execute([':programme_id' => $programmeId, ':email' => $email]);
+
+        $stmt->execute([
+            ':programme_id' => $programmeId,
+            ':email' => $email
+        ]);
+
         return $stmt->rowCount() > 0;
     }
 
@@ -56,7 +65,12 @@ class InterestModel
             SELECT id FROM interest_registrations
             WHERE programme_id = :programme_id AND email = :email
         ');
-        $stmt->execute([':programme_id' => $programmeId, ':email' => $email]);
+
+        $stmt->execute([
+            ':programme_id' => $programmeId,
+            ':email' => $email
+        ]);
+
         return $stmt->fetch() !== false;
     }
 
@@ -69,7 +83,11 @@ class InterestModel
             WHERE ir.programme_id = :programme_id
             ORDER BY ir.registered_at DESC
         ');
-        $stmt->execute([':programme_id' => $programmeId]);
+
+        $stmt->execute([
+            ':programme_id' => $programmeId
+        ]);
+
         return $stmt->fetchAll();
     }
 
@@ -81,13 +99,26 @@ class InterestModel
             JOIN programmes p ON p.id = ir.programme_id
             ORDER BY p.title, ir.last_name, ir.first_name
         ');
+
         $stmt->execute();
+
         return $stmt->fetchAll();
     }
 
-    public function deleteById(int $id): void
+    /**
+     * Delete an interest registration by ID.
+     */
+    public function deleteById(int $id): bool
     {
-        $stmt = $this->db->prepare('DELETE FROM interest_registrations WHERE id = :id');
-        $stmt->execute([':id' => $id]);
+        $stmt = $this->db->prepare('
+            DELETE FROM interest_registrations
+            WHERE id = :id
+        ');
+
+        $stmt->execute([
+            ':id' => $id
+        ]);
+
+        return $stmt->rowCount() > 0;
     }
 }
